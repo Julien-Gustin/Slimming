@@ -1,24 +1,22 @@
-#include <stdio.h>
+/*
+ - Gustin Julien
+  - Sebatis Ilias
+  */
+
 #include <stddef.h>
 #include <math.h>
 #include <stdlib.h>
+#include <limits.h>
 
 #include "PNM.h"
 #include "slimming.h"
 
-typedef struct POSITION{
-  size_t x;
-  size_t y;
-
-}POSITION;
-
 typedef struct sillon_t SILLON;
 
 struct sillon_t{
-  POSITION pos; // à supprimer ( sert pour le debug )
   SILLON *next;
-  int energie;
-  unsigned int cout_cumule;
+  float energie;
+  float cout_cumule;
 
   PNMPixel pixel;
 };
@@ -37,7 +35,7 @@ struct sillon_t{
  * RETURN
  *  l'energie du pixels
  * ------------------------------------------------------------------------- */
-static int energie_aux(size_t i, size_t j, char c, SILLON **tab_sillon, const PNMImage *image, size_t k);
+static float energie_aux(size_t i, size_t j, char c, SILLON **tab_sillon, const PNMImage *image, size_t k);
 
 /* ------------------------------------------------------------------------- *
  * Lanceur de energie_aux
@@ -53,7 +51,7 @@ static int energie_aux(size_t i, size_t j, char c, SILLON **tab_sillon, const PN
  * RETURN
  *  l'energie du pixels
  * ------------------------------------------------------------------------- */
-inline static int energie(size_t i, size_t j, SILLON** tab_sillon, const PNMImage *image, size_t k);
+inline static float energie(size_t i, size_t j, SILLON** tab_sillon, const PNMImage *image, size_t k);
 
 /* ------------------------------------------------------------------------- *
  * crée un sillon
@@ -116,7 +114,7 @@ static void reset_tabSillon(SILLON **tab_sillon, const PNMImage *image, size_t k
  * RETURN
  *  Un sillon
  * ------------------------------------------------------------------------- */
-static SILLON *C(size_t j, size_t i, SILLON **tab_sillon, const PNMImage *image, size_t k);
+static SILLON *C(size_t i, size_t j, SILLON **tab_sillon, const PNMImage *image, size_t k);
 
 /* ------------------------------------------------------------------------- *
  * renvois le sillon avec le coup cumulé minimum
@@ -144,7 +142,7 @@ inline static SILLON *min(SILLON *x, SILLON *y){
   return  x->cout_cumule < y->cout_cumule ? x : y;
 }
 
-static int energie_aux(size_t i, size_t j, char c, SILLON **tab_sillon, const PNMImage *image, size_t k){
+static float energie_aux(size_t i, size_t j, char c, SILLON **tab_sillon, const PNMImage *image, size_t k){
   int couleur_im_j = -1;
   int couleur_ip_j = -1;
 
@@ -214,7 +212,7 @@ static int energie_aux(size_t i, size_t j, char c, SILLON **tab_sillon, const PN
         couleur_i_jm = tab_sillon[i*image->width + j-1]->pixel.blue;
 
       if(j < image->width -1 -k)
-      couleur_i_jp = tab_sillon[i*image->width + j+1]->pixel.blue;
+        couleur_i_jp = tab_sillon[i*image->width + j+1]->pixel.blue;
 
       break;
 
@@ -223,10 +221,10 @@ static int energie_aux(size_t i, size_t j, char c, SILLON **tab_sillon, const PN
       break;
   }
 
-  return abs(couleur_im_j - couleur_ip_j)/2 + abs(couleur_i_jm - couleur_i_jp)/2;
+  return (float)(abs(couleur_im_j - couleur_ip_j))/2 + (float)(abs(couleur_i_jm - couleur_i_jp))/2;
 }
 
-inline static int energie(size_t i, size_t j, SILLON** tab_sillon, const PNMImage *image, size_t k){
+inline static float energie(size_t i, size_t j, SILLON** tab_sillon, const PNMImage *image, size_t k){
   return energie_aux(i, j, 'r', tab_sillon, image, k) + energie_aux(i, j, 'g', tab_sillon, image, k) + energie_aux(i, j, 'b', tab_sillon, image, k);
 }
 
@@ -235,13 +233,10 @@ static SILLON *create_sillon(size_t i, size_t j, const PNMImage* image){
   if(new_sillon == NULL)
     return NULL;
 
-  new_sillon->pos.x = i; // à supprimer
-  new_sillon->pos.y = j; // à supprimer
+  new_sillon->energie = -1.0; // {-1 = l'energie doit etre calculer, -2 = sillon à supprimer, -3 = élément à deplacer}
 
-  new_sillon->energie = -1; // {-1 = l'energie doit etre calculer, -2 = sillon à supprimer, -3 = élément à deplacer}
-
-  new_sillon->cout_cumule = 0;
-  new_sillon->next = NULL;
+  new_sillon->cout_cumule = 0.0;
+  new_sillon->next = NULL; // permet un liens facile entre les pixels d'un meme sillon
 
   new_sillon->pixel.red = image->data[i*image->width +j].red;
   new_sillon->pixel.blue = image->data[i*image->width +j].blue ;
@@ -270,34 +265,13 @@ static PNMImage *sillion_vers_image(SILLON **tab_sillon, size_t height, size_t w
   return image;
 }
 
-static PNMImage *sillion_vers_imageDEBUG(SILLON **tab_sillon, size_t height, size_t width, size_t k){
-
-  PNMImage *image = createPNM(width, height);
-
-  for(size_t i = 0; i < height; i++){
-    for(size_t j = 0; j < (width-k); j++){
-      image->data[tab_sillon[i*width +j]->pos.x*width + tab_sillon[i*width +j]->pos.y] = tab_sillon[i*width +j]->pixel;
-      image->test[tab_sillon[i*width +j]->pos.x*width + tab_sillon[i*width +j]->pos.y] = 1;
-    }
-  }
-
-  for(size_t i = 0; i < height; i++){
-    for(size_t j = 0; j < width; j++){
-      if(image->test[i*width +j] == 0){
-        image->data[i*width +j].red =255;
-        image->data[i*width +j].blue =255;
-        image->data[i*width +j].green =255;
-      }
-    }
-  }
-
-  return image;
-}
-
-static SILLON *C(size_t j, size_t i, SILLON **tab_sillon, const PNMImage *image, size_t k){
+static SILLON *C(size_t i, size_t j, SILLON **tab_sillon, const PNMImage *image, size_t k){
   size_t actuel = i*(image->width) +j;
 
-  if(tab_sillon[actuel]->energie == -1)
+  if(j == ULONG_MAX || j >= image->width-k) // car pour un unsigned int -1 = ULONG_MAX
+    return NULL;
+
+  if(tab_sillon[actuel]->energie == -1.0)
     tab_sillon[actuel]->energie = energie(i, j, tab_sillon, image, k);
 
   if(i == 0){ // cas de base
@@ -308,20 +282,7 @@ static SILLON *C(size_t j, size_t i, SILLON **tab_sillon, const PNMImage *image,
   if(tab_sillon[actuel]->next != NULL) // chemin déjà crée, pas besoin de le recalculer
     return tab_sillon[actuel];
 
-   SILLON *val1 = NULL;
-   SILLON *val2 = NULL;
-   SILLON *val3 = NULL;
-
-  if(j > 0)
-    val1 = C(j-1, i-1, tab_sillon, image, k);
-
-  val2 = C(j, i-1, tab_sillon, image, k);
-
-  if(j < image->width-1-k)
-    val3 = C(j+1, i-1, tab_sillon, image, k);
-
-
-  SILLON *s = min(min(val1, val2), val3);
+  SILLON *s = min(min(C(i-1, j-1, tab_sillon, image, k), C(i-1, j, tab_sillon, image, k)),  C(i-1, j+1, tab_sillon, image, k));
 
   tab_sillon[actuel]->next = s;
   tab_sillon[actuel]->cout_cumule = tab_sillon[actuel]->energie + s->cout_cumule;
@@ -334,14 +295,14 @@ static void calcul_cout(const PNMImage *image, size_t k, SILLON **tab_sillon){
   SILLON *min = NULL;
 
   for(size_t j = 0; j < image->width-k; j++){
-    tmp = C(j, image->height-1, tab_sillon, image, k);
+    tmp = C(image->height-1, j, tab_sillon, image, k);
 
     if(min == NULL || tmp->cout_cumule < min->cout_cumule)
       min = tmp;
     }
 
-  while(min != NULL){
-    min->energie = -2;
+  while(min != NULL){ // permet de défirencer le sillon qui doit etre supprimé
+    min->energie = -2.0;
     min = min->next;
  }
 }
@@ -350,35 +311,29 @@ static void reset_tabSillon(SILLON **tab_sillon, const PNMImage *image, size_t k
   for(size_t i = 0; i < image->height; i++){
     for(size_t j = 0; j <= image->width - k; j++){
 
-      if(tab_sillon[i*image->width + j]->energie != -2){
-        tab_sillon[i*image->width + j]->next = NULL;
-        tab_sillon[i*image->width + j]->cout_cumule = 0;
+      tab_sillon[i*image->width + j]->next = NULL;
+      tab_sillon[i*image->width + j]->cout_cumule = 0.0;
 
-        if(j > 0 && tab_sillon[i*image->width + j-1]->energie == -3){
-          tab_sillon[i*image->width + j-1]->next = NULL;
-          // à supprimer
-          tab_sillon[i*image->width + j-1]->pos.x = tab_sillon[i*image->width + j]->pos.x;
-          // à supprimer
-          tab_sillon[i*image->width + j-1]->pos.y = tab_sillon[i*image->width + j]->pos.y;
+      if(tab_sillon[i*image->width + j]->energie != -2.0){
+
+        if(j > 0 && tab_sillon[i*image->width + j-1]->energie == -3.0){ // élément peut etre écraser par le SILLON à sa droite
 
           tab_sillon[i*image->width + j-1]->energie = tab_sillon[i*image->width + j]->energie;
 
-          tab_sillon[i*image->width + j-1]->cout_cumule = 0;
-
           tab_sillon[i*image->width + j-1]->pixel = tab_sillon[i*image->width + j]->pixel;
 
-          tab_sillon[i*image->width + j]->energie = -3;
+          tab_sillon[i*image->width + j]->energie = -3.0;
         }
       }
 
       else{
-        tab_sillon[i*image->width + j]->energie = -3;
+        tab_sillon[i*image->width + j]->energie = -3.0; // élément peut etre écrasé
 
         if( j < image->width - k)
-          tab_sillon[i*image->width + j+1]->energie = -1;
+          tab_sillon[i*image->width + j+1]->energie = -1.0; // les éléments à coté du pixel supprimé doit etre recalculé
 
         if(j > 0)
-          tab_sillon[i*image->width + j-1]->energie = -1;
+          tab_sillon[i*image->width + j-1]->energie = -1.0;
       }
     }
   }
@@ -388,7 +343,7 @@ PNMImage* reduceImageWidth(const PNMImage* image, size_t k){
 
   SILLON **tab_sillon = malloc(sizeof(SILLON*)*image->width*image->height);
 
-  for(size_t i = 0; i < image->height; i++){
+  for(size_t i = 0; i < image->height; i++){ // crée un tableau de SILLOn
     for(size_t j = 0; j < image->width; j++){
       tab_sillon[i*image->width + j] = create_sillon(i, j, image);
       if(tab_sillon[i*image->width + j] == NULL)
@@ -401,14 +356,9 @@ PNMImage* reduceImageWidth(const PNMImage* image, size_t k){
     reset_tabSillon(tab_sillon, image, i+1);
   }
 
-  //PNMImage *image2 = sillion_vers_imageDEBUG(tab_sillon, image->height, image->width, k);
-
   PNMImage *image2 = sillion_vers_image(tab_sillon, image->height, image->width, k);
 
-  free(image->test);
-  free(image2->test); // à supprimer
   libere_tab_sillon(tab_sillon, image);
 
   return image2;
-
 }

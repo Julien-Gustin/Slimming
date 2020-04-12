@@ -21,7 +21,6 @@ typedef struct {
     size_t width;
     size_t height;
     PNMPixel* data;     // Pixel (i, j) is at position i * width + j
-    int *test;
 } PNMImage;
 
 

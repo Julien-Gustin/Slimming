@@ -21,8 +21,6 @@ PNMImage* createPNM(size_t width, size_t height) {
     image->width = width;
     image->height = height;
 
-    image->test = calloc(width * height, sizeof(int));
-
     image->data = (PNMPixel*) malloc(width * height * sizeof(PNMPixel));
     if (!image->data) {
         free(image);
