@@ -18,5 +18,5 @@
 
 <p align="center">
   <img src="https://github.com/Julien-Gustin/Slimming/blob/master/slimming.png?raw=true" />
-  <figcaption style="text-align:center">        (a) is the original image, (b) crushed's image (naive), (c) crushed's image with slimming</figcaption>
+  <figcaption style="text-align:center">(a) is the original image, (b) crushed's image (naive), (c) crushed's image with slimming</figcaption>
 </p>
