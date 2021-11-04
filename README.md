@@ -16,4 +16,7 @@
 ```
 ### READ Rapport_Slimming.pdf
 
-![plot](./slimming.png?raw=true)
+<p align="center">
+  <img src="https://github.com/Julien-Gustin/Slimming/edit/master/slimming.png" />
+</p>
+
