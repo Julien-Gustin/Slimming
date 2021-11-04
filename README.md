@@ -14,7 +14,6 @@
 ```sh
 ./slimming ../pnm/07.pnm ../pnmOutput/test07.pnm 500
 ```
-### READ Rapport_Slimming.pdf
 
 <p align="center">
   <img src="https://github.com/Julien-Gustin/Slimming/blob/master/slimming.png?raw=true" />
