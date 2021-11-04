@@ -15,3 +15,5 @@
 ./slimming ../pnm/07.pnm ../pnmOutput/test07.pnm 500
 ```
 ### READ Rapport_Slimming.pdf
+
+![alt text](https://github.com/Julien-Gustin/Slimming/edit/master/slimming.png?raw=true)
