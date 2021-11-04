@@ -21,3 +21,15 @@
   <figcaption>(a) is the original image, (b) crushed's image (naive), (c) crushed's image with slimming</figcaption>
 </p>
 
+figure {
+    display: inline-block;
+    border: 1px dotted gray;
+    margin: 20px; /* adjust as needed */
+}
+figure img {
+    vertical-align: top;
+}
+figure figcaption {
+    border: 1px dotted blue;
+    text-align: center;
+}
