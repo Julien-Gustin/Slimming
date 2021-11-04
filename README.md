@@ -18,7 +18,6 @@
 
 <p align="center">
   <img src="https://github.com/Julien-Gustin/Slimming/blob/master/slimming.png?raw=true" />
-  s
   <em>(a) is the original image, (b) crushed's image (naive), (c) crushed's image with slimming</em>
 </p>
 
