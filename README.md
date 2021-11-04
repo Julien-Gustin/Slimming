@@ -17,6 +17,6 @@
 ### READ Rapport_Slimming.pdf
 
 <p align="center">
-  <img src="https://github.com/Julien-Gustin/Slimming/edit/master/slimming.png" />
+  <img src="https://github.com/Julien-Gustin/Slimming/edit/master/slimming.png?raw=true" />
 </p>
 
